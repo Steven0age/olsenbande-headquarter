@@ -1,14 +1,20 @@
-import { createContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback, useEffect } from 'react'
 
 export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('olsenbande_auth') === 'true'
-  })
-  const [user, setUser] = useState(() => {
-    return localStorage.getItem('olsenbande_user') || null
-  })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  // Initialer Auth-Check (Client-seitig)
+  useEffect(() => {
+    const auth = localStorage.getItem('olsenbande_auth') === 'true'
+    const userData = localStorage.getItem('olsenbande_user')
+    setIsAuthenticated(auth)
+    setUser(userData || null)
+    setLoading(false)
+  }, [])
 
   const login = useCallback((username, password) => {
     // Einfache Client-seitige Auth-Prüfung
@@ -30,7 +36,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
